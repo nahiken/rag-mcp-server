@@ -1,0 +1,20 @@
+[
+  {
+    "query": "知识库检索返回文档片段",
+    "expected_chunk_ids": ["default::zh-knowledge-md::0"],
+    "expected_sources": ["zh-knowledge.md"],
+    "reference_answer": "知识库检索应通过关键词匹配与语义召回返回相关文档片段。"
+  },
+  {
+    "query": "MCP 工具 semantic_search",
+    "expected_chunk_ids": ["default::en-rag-terms-md::0"],
+    "expected_sources": ["en-rag-terms.md"],
+    "reference_answer": "MCP 工具 semantic_search 应能检索 RetrievalResult 中的 chunk_id 与 source_path。"
+  },
+  {
+    "query": "hit_rate mrr 门禁",
+    "expected_chunk_ids": ["default::project-terms-md::0"],
+    "expected_sources": ["project-terms.md"],
+    "reference_answer": "EvalRunner 应对 golden test set 计算 hit_rate 与 mrr，作为离线检索门禁。"
+  }
+]

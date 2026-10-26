@@ -1,0 +1,3 @@
+RAG 是 Retrieval Augmented Generation 的缩写，最小闭环先用关键词检索。
+
+MCP 是 Model Context Protocol，用于连接工具。

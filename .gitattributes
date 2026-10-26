@@ -1,0 +1,7 @@
+# 统一换行符，避免 Windows 上提交后在 Linux/macOS 检出出现 CRLF 脚本
+* text=auto
+*.sh text eol=lf
+*.bat text eol=crlf
+*.pdf binary
+*.png binary
+*.jpg binary

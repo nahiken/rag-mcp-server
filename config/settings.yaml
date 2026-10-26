@@ -1,0 +1,76 @@
+# RAG MCP Server settings
+# Phase 9: optional config. Every field here has a code default in
+# src/rag_mcp_server/config/settings.py (DEFAULTS). Omitted fields fall back
+# to those defaults; a missing file entirely also falls back to defaults.
+
+llm:
+  provider: ollama
+  base_url: http://127.0.0.1:11451
+  model: qwen2.5:7b
+  # api_key（ADR 0018）：openai/deepseek 用。留空则读环境变量 OPENAI_API_KEY；
+  # 设置真实 key 可覆盖 env。ollama 不需要。
+  api_key: ""
+
+embedding:
+  provider: ollama
+  base_url: http://127.0.0.1:11451
+  model: nomic-embed-text
+  # api_key（ADR 0018）：openai 用。留空则读环境变量 OPENAI_API_KEY。
+  api_key: ""
+
+vector_store:
+  provider: chroma
+  persist_dir: data/chroma
+  # 默认集合（ADR 0016 多 collection）：ingest/query 未指定 collection 时落这里。
+  # 每个集合一个独立 Chroma collection；旧 data/chroma 里的 rag_chunks 是历史遗留。
+  collection: default
+
+retrieval:
+  strategy: hybrid
+  top_k: 3
+  rrf_k: 60
+  # ADR 0021: 持久 BM25 索引（默认关）。开启后 sparse 查询从 chunks.jsonl 语料
+  # 快照构造（免扫向量库），否则每查询重建（ADR 0003）。索引缺失/过期自动回退。
+
+# 精排（P10.3 + T3）：默认关闭（enabled: false -> NoneReranker 保序）。
+# provider: none | llm | cross_encoder
+#   - llm：service 层注入 BaseLLM，逐候选 0-3 打分（严格 JSON 评分契约）。
+#   - cross_encoder：本地 sentence-transformers 模型，无 API 离线可用，首调 rerank 才加载。
+# top_k 复用 query() 的 top_k。
+# model：cross_encoder 的模型名（默认官方 cross-encoder/ms-marco-MiniLM-L-6-v2，本地路径也支持）。
+rerank:
+  enabled: false
+  provider: none
+  model: cross-encoder/ms-marco-MiniLM-L-6-v2
+
+# Transform 增强（P10.4）：默认关闭 LLM（use_llm: false 走纯规则）。
+# 关闭时 _default_pipeline 不装配 transform，现有 ingest 行为不变。
+# image_captioner（P10.6）：enabled 默认 false；use_vision 默认 false（走确定性 caption）。
+# 分块策略（T5 / ADR 0020），三选一：
+#   paragraph    —— 默认，段落分块（按空行分段、超长按 chunk_size 续切），现有行为不变
+#   fixed_length —— 固定长度均匀窗口 + overlap 重叠，覆盖全文不丢字，适合无自然段落的密集文本
+#   semantic     —— 语义分块：段落 embedding 相似度 >= semantic_threshold 合并，超长按 chunk_size 续切；
+#                   依赖本地 embedding（Ollama），embedding 失败/离线自动降级 paragraph
+# 参数缺省回退 settings.py DEFAULTS 同名单值。
+ingestion:
+  splitter: paragraph
+  chunk_size: 800
+  overlap: 100
+  semantic_threshold: 0.6
+  transform:
+    chunk_refiner:
+      use_llm: false
+    metadata_enricher:
+      use_llm: false
+    image_captioner:
+      enabled: false
+      use_vision: false
+      vision_provider: ollama
+      vision_model: qwen2.5vl:7b
+      vision_base_url: http://127.0.0.1:11451
+
+trace:
+  enabled: true
+  dir: logs
+
+index_dir: data/index
